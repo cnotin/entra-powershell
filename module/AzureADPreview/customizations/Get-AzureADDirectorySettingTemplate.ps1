@@ -27,25 +27,26 @@
         `$params.Keys | ForEach-Object {"`$_ : `$(`$params[`$_])" } | Write-Debug
         Write-Debug("=========================================================================``n")
         
-        `$apiResponse = Get-MgBetaDirectorySettingTemplate @params
-        `$response = @()
-        `$apiResponse | ForEach-Object {
-            if(`$null -ne `$_) {
-                `$item = New-Object -TypeName Microsoft.Open.MSGraph.Model.DirectorySettingTemplate
-                `$item.Id = `$_.Id
-                `$item.DisplayName = `$_.DisplayName
-                `$item.Description = `$_.Description
-                `$item.Values = @()
-                `$_.Values | ForEach-Object {
-                    `$value = New-Object -TypeName Microsoft.Open.MSGraph.Model.SettingTemplateValue
-                    `$value.Name = `$_.Name
-                    `$value.DefaultValue = `$_.DefaultValue
-                    `$item.Values += `$value
-                }
-                `$response += `$item
-            }
-        }
-        `$response
+        `$Script:apiResponse = Get-MgBetaDirectorySettingTemplate @params
+        `$block = {
+            `$directoryObject = New-Object -TypeName Microsoft.Open.MSGraph.Model.DirectorySetting
+            `$directoryObject.TemplateId =  `$Script:apiResponse.Id
+            `$settingvalues = New-Object -TypeName System.Collections.Generic.List[Microsoft.Open.MSGraph.Model.SettingValue]
+            `$test = @{}
+            foreach(`$tempValue in `$Script:apiResponse.Values ){
+               `$test =   @{
+                         name = `$tempValue.Name
+                         value = `$tempValue.DefaultValue
+                      }
+             }
+            `$settingvalues.Add(`$test)
+            `$directoryObject.Values = `$settingvalues
+            return `$directoryObject
+          }
+ 
+  
+    `$Script:apiResponse | Foreach-Object {Add-Member -InputObject  `$_ -MemberType ScriptMethod -Name 'CreateDirectorySetting' -Value `$block -Force}     
+    `$apiResponse
     }
 "@
 }
