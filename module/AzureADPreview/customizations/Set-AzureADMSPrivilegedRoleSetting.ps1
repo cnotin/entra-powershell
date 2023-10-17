@@ -67,13 +67,7 @@
             TargetName = "UserMemberSettings"
             ConversionType = "ScriptBlock"
             SpecialMapping = @"
-            `$a = @()
-            foreach(`$setting in `$TmpValue) {
-              `$Temp = `$setting | ConvertTo-Json
-              `$a += `$Temp
-            }
-
-            `$Value = `$a 
+            `$Value` = (`$TmpValue | ConvertTo-Json).TrimStart("[").Trimend("]")
 "@
         }
     )
